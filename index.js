@@ -56,6 +56,11 @@ app.use("/api/allnotifications", allnotificationRoutes);
 app.use("/api/user", accountRoutes);
 app.use("/api/profile", profileRoutes);
 
+app.get("/", (req, res) => {
+  res.send("Backend server is running");
+});
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
