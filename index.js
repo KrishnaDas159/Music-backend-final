@@ -19,7 +19,9 @@ import notificationRoutes from "./routes/notifications.js";
 import web3Routes from "./routes/web3setting.js";
 import privacyRoutes from "./routes/privacyRoutes.js";
 import allnotificationRoutes from "./routes/allnotification.js";
-// Setup __dirname for ES modules
+import accountRoutes from "./routes/account.js";
+import profileRoutes from "./routes/profileRoutes.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -51,7 +53,9 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/web3", web3Routes);
 app.use("/api/privacy", privacyRoutes);
 app.use("/api/allnotifications", allnotificationRoutes);
-// Start server
+app.use("/api/user", accountRoutes);
+app.use("/api/profile", profileRoutes);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

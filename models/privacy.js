@@ -1,15 +1,15 @@
-// backend/models/User.js
+// models/privacy.js
 import mongoose from "mongoose";
 
-const UserSchema = new mongoose.Schema({
-  displayName: String,
-  email: String,
-  bio: String,
-  privacy: {
-    publicProfile: { type: Boolean, default: true },
-    anonymousAnalytics: { type: Boolean, default: true }
+const privacySchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", 
+    required: true,
+    unique: true
   },
-  password: String // hashed password
-}, { timestamps: true });
+  publicProfile: { type: Boolean, default: true },
+  anonymousAnalytics: { type: Boolean, default: true }
+});
 
-export default mongoose.model("Privacy", UserSchema);
+export default mongoose.model("Privacy", privacySchema);

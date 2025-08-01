@@ -4,7 +4,9 @@ const userSchema = new mongoose.Schema({
   email: { 
     type: String, 
     required: true, 
-    unique: true 
+    unique: true,
+    trim: true,
+    lowercase: true
   },
   passwordHash: { 
     type: String, 
@@ -30,17 +32,16 @@ const userSchema = new mongoose.Schema({
       default: 'pending'
     }
   }
-});
+}, { timestamps: true });
 
-// Custom validator: enforce KYC required for 'creator'
+
 userSchema.pre('save', function(next) {
   if (this.role === 'creator') {
-    if (!this.kyc || !this.kyc.govtId.data || !this.kyc.livePhoto.data) {
+    if (!this.kyc || !this.kyc.govtId?.data || !this.kyc.livePhoto?.data) {
       return next(new Error('KYC documents are required for creators.'));
     }
   }
   next();
 });
 
-const User = mongoose.model('User', userSchema);
-export default User;
+export default mongoose.model('User', userSchema);

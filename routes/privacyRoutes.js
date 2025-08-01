@@ -1,3 +1,4 @@
+// routes/privacyRoutes.js
 import express from "express";
 import {
   updatePrivacySettings,
@@ -7,13 +8,8 @@ import {
 
 const router = express.Router();
 
-// PUT /api/privacy - Update privacy settings
-router.put("/", updatePrivacySettings);
-
-// GET /api/privacy/export - Export user data
-router.get("/export", exportUserData);
-
-// DELETE /api/privacy - Delete account
-router.delete("/", deleteAccount);
+router.put("/:userId", updatePrivacySettings);
+router.get("/export/:userId", exportUserData);
+router.delete("/:userId", deleteAccount);
 
 export default router;

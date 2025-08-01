@@ -14,14 +14,14 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Memory storage (no files saved on disk)
+
 const storage = multer.memoryStorage();
 
 // Multer instance
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // Optional: limit to 5MB
+  limits: { fileSize: 5 * 1024 * 1024 } 
 });
 
 export default upload;

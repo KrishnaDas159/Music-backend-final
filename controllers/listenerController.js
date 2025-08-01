@@ -1,66 +1,62 @@
-// backend/controllers/listenerController.js
-import Listener from "../models/listenerSchema.js";
-import NFT from "../models/nftSchema.js";
-import Following from "../models/following.js";
-import LikedSong from "../models/likedSong.js";
-import VaultStat from "../models/vaultStats.js";
+import User from "../models/user.js";
 
-// GET Listener Profile
 export const getListenerProfile = async (req, res) => {
   try {
-    const { userId } = req.params; // from URL params
+    const user = await User.findById(req.params.id)
+      .populate({
+        path: "accounts",
+        select: "displayName avatar walletAddress bio", 
+      })
+      .populate({
+        path: "nfts",
+        select: "title artist cover owned earnings daoVoting",
+      })
+      .populate({
+        path: "vaults",
+        select: "title invested tvl apr withdrawable",
+      })
+      .populate({
+        path: "likedSongs",
+        populate: {
+          path: "songs",
+          model: "Song",
+          select: "title artist cover",
+        },
+      })
+      .populate({
+        path: "followers",
+        populate: {
+          path: "accounts",
+          select: "displayName avatar",
+        },
+      })
+      .populate({
+        path: "followings",
+        populate: {
+          path: "accounts",
+          select: "displayName avatar",
+        },
+      });
 
-    const listener = await Listener.findOne({ userId });
-    if (!listener) {
-      return res.status(404).json({ error: "Listener not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-    res.json(listener);
+
+    // Flatten account info so frontend can use directly
+    const account = user.accounts?.[0] || {};
+    const response = {
+      ...user.toObject(),
+      displayName: account.displayName || "",
+      avatar: account.avatar || "",
+      walletAddress: account.walletAddress || "",
+      bio: account.bio || "",
+    };
+
+    res.json(response);
   } catch (err) {
-    console.error("Error fetching listener profile:", err);
-    res.status(500).json({ error: "Internal server error" });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// GET Listener NFTs
-export const getListenerNFTs = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const nfts = await NFT.find({ userId });
-    res.json(nfts);
-  } catch (err) {
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
 
-// GET Listener Vault Stats
-export const getListenerVaults = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const vaults = await VaultStat.find({ userId });
-    res.json(vaults);
-  } catch (err) {
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// GET Liked Songs
-export const getLikedSongs = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const songs = await LikedSong.find({ userId });
-    res.json(songs);
-  } catch (err) {
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// GET Following
-export const getFollowing = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const following = await Following.find({ userId });
-    res.json(following);
-  } catch (err) {
-    res.status(500).json({ error: "Internal server error" });
-  }
-};

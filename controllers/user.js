@@ -63,7 +63,7 @@ export const signin = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
 
-    if (user.role === 'creator' && (!user.kyc || user.kyc.verified !== true)) {
+    if (user.role === 'creator' && (!user.kyc )) {
       return res.status(403).json({ message: 'Creator account not KYC-verified yet' });
     }
 
