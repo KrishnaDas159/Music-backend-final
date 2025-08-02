@@ -19,8 +19,13 @@ const songSchema = new mongoose.Schema({
     vaultYield: String,
     holders: String,
     creatorRevenue: String
+  },
+ 
+  music: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Music", 
+    required: true
   }
 });
 
-const Song = mongoose.model("Song", songSchema);
-export default Song; 
+export default mongoose.model("Song", songSchema);
