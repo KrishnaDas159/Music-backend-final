@@ -7,11 +7,11 @@ const musicSchema = new mongoose.Schema({
 
   
   musicFile: Buffer,
-  musicFileType: String, // e.g., 'audio/mp3'
+  musicFileType: String, 
 
-  // Actual thumbnail file stored as binary (JPG/PDF)
+  
   thumbnailFile: Buffer,
-  thumbnailFileType: String, // e.g., 'image/jpeg' or 'application/pdf'
+  thumbnailFileType: String,
 
   tokenized: Boolean,
   tokenAddress: String,
@@ -20,6 +20,11 @@ const musicSchema = new mongoose.Schema({
   revenueSplit: Object,
   transactionHash: String,
   mintedAt: Date,
+  creator: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", 
+    required: true
+  }
 }, { timestamps: true });
 
 export default mongoose.model("Music", musicSchema);
