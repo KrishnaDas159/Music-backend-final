@@ -12,6 +12,7 @@ const PACKAGE_ID = process.env.SUI_PACKAGE_ID;
 const TREASURY_CAP_ID = process.env.TREASURY_CAP_ID;
 const TRACK_SUPPLY_REGISTRY_ID = process.env.TRACK_SUPPLY_REGISTRY_ID;
 const VAULT_REGISTRY_ID = process.env.VAULT_REGISTRY_ID;
+const YIELD_PROTOCOL_ID = process.env.YIELD_PROTOCOL_ID;
 
 /* -------------------------
    2️⃣ Load Keypair from .env
@@ -46,13 +47,21 @@ const publicKey = keypair.publicKey;
    Helper: Send RPC request
 -------------------------- */
 async function rpc(method, params) {
-    const { data } = await axios.post(SUI_RPC_URL, {
-        jsonrpc: "2.0",
-        id: 1,
-        method,
-        params
-    });
-    return data.result;
+    try {
+        const { data } = await axios.post(SUI_RPC_URL, {
+            jsonrpc: "2.0",
+            id: 1,
+            method,
+            params
+        });
+        if (data.error) {
+            throw new Error(`RPC error: ${data.error.message}`);
+        }
+        return data.result;
+    } catch (error) {
+        console.error(`RPC call failed for method ${method}:`, error);
+        throw error;
+    }
 }
 
 /* -------------------------
@@ -65,6 +74,86 @@ async function signAndExecuteTransactionBlock(txBytes) {
         [toB64(signature)],
         { showEffects: true, showEvents: true }
     ]);
+}
+
+/* -------------------------
+   3️⃣ YIELD STATS
+-------------------------- */
+export async function getYieldStats({ protocolId, vaultId, userAddress }) {
+    try {
+        if (!protocolId || !vaultId || !userAddress) {
+            throw new Error("Missing required parameters: protocolId, vaultId, or userAddress");
+        }
+
+        console.log(`Fetching yield stats for vault ${vaultId} in protocol ${protocolId} for user ${userAddress}`);
+
+        // Simulate querying yield stats via a Move call (assuming yield_protocol module has get_yield_stats)
+        const result = await rpc("sui_call", [
+            {
+                package: PACKAGE_ID,
+                module: "yield_protocol",
+                function: "get_yield_stats",
+                arguments: [
+                    { Object: protocolId },
+                    { Object: vaultId },
+                    { Pure: userAddress }
+                ]
+            }
+        ]);
+
+        // Parse result (assuming it returns yieldEarned and stakeAmount in SUI)
+        const yieldStats = {
+            yieldEarned: result?.yieldEarned || "0",
+            stakeAmount: result?.stakeAmount || "0"
+        };
+
+        console.log(`Yield stats retrieved:`, yieldStats);
+        return yieldStats;
+    } catch (error) {
+        console.error("Failed to fetch yield stats:", error);
+        throw new Error(`Failed to fetch yield stats: ${error.message}`);
+    }
+}
+
+/* -------------------------
+   4️⃣ TRANSFER TOKENS
+-------------------------- */
+export async function transferTokens({ toAddress, amount, creatorAddress, trackIdHex }) {
+    try {
+        if (!toAddress || !amount || !creatorAddress || !trackIdHex) {
+            throw new Error("Missing required parameters: toAddress, amount, creatorAddress, or trackIdHex");
+        }
+
+        console.log(`Transferring ${amount} tokens for track ${trackIdHex} to ${toAddress}`);
+
+        const tx = {
+            kind: "ProgrammableTransaction",
+            transactions: [
+                {
+                    MoveCall: {
+                        package: PACKAGE_ID,
+                        module: "content_token",
+                        function: "transfer_tokens",
+                        arguments: [
+                            { Object: TRACK_SUPPLY_REGISTRY_ID },
+                            { Pure: toAddress },
+                            { Pure: amount },
+                            { Pure: creatorAddress },
+                            { Pure: Array.from(Buffer.from(trackIdHex, "hex")) }
+                        ]
+                    }
+                }
+            ]
+        };
+
+        const txBytes = Buffer.from(JSON.stringify(tx));
+        const result = await signAndExecuteTransactionBlock(txBytes);
+        console.log(`Tokens transferred:`, result);
+        return result;
+    } catch (error) {
+        console.error("Failed to transfer tokens:", error);
+        throw new Error(`Failed to transfer tokens: ${error.message}`);
+    }
 }
 
 /* -------------------------
@@ -163,7 +252,7 @@ export async function stakeInVault({ protocolId, suiCoinId }) {
                     arguments: [
                         { Object: protocolId },
                         { Object: suiCoinId },
-                        { Object: "0x6" }
+                        { Object: "0x6" } // Clock object, standard in Sui
                     ]
                 }
             }
@@ -203,7 +292,38 @@ export async function updateCurveParams({ governanceId, trackIdHex, basePrice, s
 }
 
 /* -------------------------
-   🔟 Export signer-like objects
+   10️⃣ UNSTAKE FROM VAULT
+-------------------------- */
+export async function unstakeFromVault({ protocolId, vaultId }) {
+    try {
+        const tx = {
+            kind: "ProgrammableTransaction",
+            transactions: [
+                {
+                    MoveCall: {
+                        package: PACKAGE_ID,
+                        module: "yield_protocol",
+                        function: "unstake",
+                        arguments: [
+                            { Object: protocolId },
+                            { Object: vaultId },
+                            { Object: "0x6" } // Clock object, standard in Sui
+                        ]
+                    }
+                }
+            ]
+        };
+
+        const txBytes = Buffer.from(JSON.stringify(tx));
+        return signAndExecuteTransactionBlock(txBytes);
+    } catch (error) {
+        console.error("Failed to unstake from vault:", error);
+        throw new Error(`Failed to unstake from vault: ${error.message}`);
+    }
+}
+
+/* -------------------------
+   11️⃣ Export signer-like objects
 -------------------------- */
 export const signer = { publicKey };
 export const provider = { rpc };
