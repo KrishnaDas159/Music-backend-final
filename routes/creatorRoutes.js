@@ -6,12 +6,13 @@ import {
     getCreatorRevenue,
     getLikedSongs,
     getFollowing,
-    getVaults
-  
-  } from "../controllers/creatorController.js";
+    getVaults,
+    tokeniseSong // ✅ new function from controller
+} from "../controllers/creatorController.js";
 
 const router = express.Router();
 
+// Creator profile & data routes
 router.get("/:creatorId", getCreatorProfile);
 router.get("/:creatorId/nfts", getCreatorNFTs);
 router.get("/:creatorId/revenue", getCreatorRevenue);
@@ -19,6 +20,7 @@ router.get("/:creatorId/liked-songs", getLikedSongs);
 router.get("/:creatorId/following", getFollowing);
 router.get("/:creatorId/vaults", getVaults);
 
-// router.get("/:creatorId/following", getFollowing);
+// ✅ New POST route for tokenising a song
+router.post("/:creatorId/tokenise", tokeniseSong);
 
 export default router;
