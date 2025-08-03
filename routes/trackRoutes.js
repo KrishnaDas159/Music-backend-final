@@ -18,17 +18,3 @@ router.post(
 );
 
 export default router;
-
-
-
-
-// backend/routes/trackRoutes
-
-// import express from "express";
-// import { createMusic } from "../controllers/trackController.js";
-
-// const router = express.Router();
-
-// router.post("/",createMusic);
-
-// export default router;
