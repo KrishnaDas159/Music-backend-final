@@ -1,18 +1,18 @@
-import express from 'express';
-import multer from 'multer';
-import { uploadMusic } from '../controllers/trackController.js';
+import express from "express";
+import multer from "multer";
+import { uploadMusic } from "../controllers/trackController.js";
 
 const router = express.Router();
 
-// Multer config to handle file upload in memory
+
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 router.post(
-  '/upload',
+  "/upload/:creatorId", 
   upload.fields([
-    { name: 'musicFile', maxCount: 1 },
-    { name: 'thumbnailFile', maxCount: 1 }
+    { name: "musicFile", maxCount: 1 },
+    { name: "thumbnailFile", maxCount: 1 },
   ]),
   uploadMusic
 );
